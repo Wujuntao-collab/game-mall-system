@@ -1,0 +1,115 @@
+-- MySQL 建库与初始化（结构与 H2 版本一致）
+CREATE DATABASE IF NOT EXISTS game_mall DEFAULT CHARSET utf8mb4;
+USE game_mall;
+
+DROP TABLE IF EXISTS banner;
+DROP TABLE IF EXISTS notice;
+DROP TABLE IF EXISTS comment;
+DROP TABLE IF EXISTS post;
+DROP TABLE IF EXISTS order_item;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS cart_item;
+DROP TABLE IF EXISTS product;
+DROP TABLE IF EXISTS category;
+DROP TABLE IF EXISTS sys_user;
+
+CREATE TABLE sys_user (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(64) NOT NULL UNIQUE,
+  password VARCHAR(100) NOT NULL,
+  nickname VARCHAR(64),
+  role VARCHAR(16) NOT NULL DEFAULT 'USER',
+  status INT NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE category (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(64) NOT NULL,
+  sort INT NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE product (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(128) NOT NULL,
+  category_id BIGINT,
+  type VARCHAR(16) NOT NULL DEFAULT 'GAME',
+  price DECIMAL(10,2) NOT NULL DEFAULT 0,
+  stock INT NOT NULL DEFAULT 0,
+  cover VARCHAR(255),
+  description TEXT,
+  status INT NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_product_category (category_id),
+  KEY idx_product_status (status)
+) ENGINE=InnoDB;
+
+CREATE TABLE cart_item (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  product_id BIGINT NOT NULL,
+  quantity INT NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_cart_user_product (user_id, product_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE orders (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  order_no VARCHAR(40) NOT NULL UNIQUE,
+  user_id BIGINT NOT NULL,
+  total_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+  status INT NOT NULL DEFAULT 0,
+  address VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  paid_at DATETIME,
+  KEY idx_orders_user (user_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE order_item (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  order_id BIGINT NOT NULL,
+  product_id BIGINT NOT NULL,
+  product_name VARCHAR(128) NOT NULL,
+  price DECIMAL(10,2) NOT NULL,
+  quantity INT NOT NULL,
+  cover VARCHAR(255),
+  KEY idx_order_item_order (order_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE post (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  title VARCHAR(128) NOT NULL,
+  content TEXT NOT NULL,
+  product_id BIGINT,
+  status INT NOT NULL DEFAULT 0,
+  views INT NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_post_status (status),
+  KEY idx_post_product (product_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE comment (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  post_id BIGINT NOT NULL,
+  user_id BIGINT NOT NULL,
+  content VARCHAR(500) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_comment_post (post_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE notice (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(128) NOT NULL,
+  content TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE banner (
+  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+  image_url VARCHAR(255) NOT NULL,
+  link_url VARCHAR(255),
+  sort INT NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
